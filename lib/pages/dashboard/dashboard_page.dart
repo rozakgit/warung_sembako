@@ -1,10 +1,57 @@
 import 'package:flutter/material.dart';
 
 import '../../config/app_color.dart';
+import '../../models/product_model.dart';
+
+import '../../widgets/dashboard_card.dart';
+import '../../widgets/product_card.dart';
+
 import '../product/add_product_page.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() =>
+      _DashboardPageState();
+}
+
+class _DashboardPageState
+    extends State<DashboardPage> {
+
+  int currentIndex = 0;
+
+  final List<ProductModel> products = [
+
+    ProductModel(
+      name: "Beras Premium",
+      price: "Rp 75.000",
+      stock: "100",
+      image: "assets/images/beras.png",
+    ),
+
+    ProductModel(
+      name: "Minyak Goreng",
+      price: "Rp 20.000",
+      stock: "50",
+      image: "assets/images/minyak.png",
+    ),
+
+    ProductModel(
+      name: "Telur Ayam",
+      price: "Rp 30.000",
+      stock: "80",
+      image: "assets/images/telur.png",
+    ),
+
+    ProductModel(
+      name: "Gula Pasir",
+      price: "Rp 18.000",
+      stock: "40",
+      image: "assets/images/gula.png",
+    ),
+
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +62,12 @@ class DashboardPage extends StatelessWidget {
 
       appBar: AppBar(
         backgroundColor: AppColor.primary,
+        elevation: 0,
         title: const Text(
-          "Dashboard",
+          "Warung Sembako",
           style: TextStyle(
             color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
@@ -26,267 +75,231 @@ class DashboardPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColor.primary,
         child: const Icon(Icons.add),
+
         onPressed: () {
 
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const AddProductPage(),
+              builder: (_) =>
+              const AddProductPage(),
             ),
           );
 
         },
       ),
 
-      body: SingleChildScrollView(
+      body: SafeArea(
 
-        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
 
-        child: Column(
-          children: [
+          padding: const EdgeInsets.all(20),
 
-            // SEARCH
-            TextField(
-              decoration: InputDecoration(
-                hintText: "Cari produk...",
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+          child: Column(
 
-            const SizedBox(height: 20),
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
 
-            // CARD
-            Row(
-              children: [
+            children: [
 
-                Expanded(
-                  child: card(
-                    "Produk",
-                    "120",
-                    Icons.shopping_bag,
-                  ),
-                ),
+              // SEARCH
+              TextField(
+                decoration: InputDecoration(
+                  hintText: "Cari produk...",
+                  prefixIcon:
+                  const Icon(Icons.search),
 
-                const SizedBox(width: 15),
+                  filled: true,
+                  fillColor: Colors.white,
 
-                Expanded(
-                  child: card(
-                    "Order",
-                    "80",
-                    Icons.receipt_long,
-                  ),
-                ),
-
-              ],
-            ),
-
-            const SizedBox(height: 15),
-
-            // BANNER
-            Container(
-              height: 180,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColor.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Center(
-                child: Text(
-                  "Promo Hari Ini",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                  border: OutlineInputBorder(
+                    borderRadius:
+                    BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 25),
+              const SizedBox(height: 25),
 
-            // TITLE
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              // CARD
+              Row(
+                children: [
 
-                Text(
-                  "Produk",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                  const Expanded(
+                    child: DashboardCard(
+                      title: "Produk",
+                      total: "120",
+                      icon: Icons.shopping_bag,
+                    ),
                   ),
-                ),
 
-                Text("Lihat Semua"),
+                  const SizedBox(width: 15),
 
-              ],
-            ),
+                  const Expanded(
+                    child: DashboardCard(
+                      title: "Order",
+                      total: "80",
+                      icon: Icons.receipt_long,
+                    ),
+                  ),
 
-            const SizedBox(height: 20),
-
-            // GRID PRODUCT
-            GridView.builder(
-
-              itemCount: 4,
-
-              shrinkWrap: true,
-
-              physics: const NeverScrollableScrollPhysics(),
-
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-
-                crossAxisCount: 2,
-
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
-
-                childAspectRatio: 0.72,
-
+                ],
               ),
 
-              itemBuilder: (context, index) {
+              const SizedBox(height: 15),
 
-                return Container(
+              Row(
+                children: [
 
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                  const Expanded(
+                    child: DashboardCard(
+                      title: "Stok",
+                      total: "500",
+                      icon: Icons.inventory,
+                    ),
                   ),
 
-                  child: Column(
+                  const SizedBox(width: 15),
 
-                    crossAxisAlignment: CrossAxisAlignment.start,
-
-                    children: [
-
-                      Container(
-                        height: 120,
-                        decoration: const BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(20),
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.image,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
-                          children: [
-
-                            const Text(
-                              "Beras Premium",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-
-                            const SizedBox(height: 5),
-
-                            const Text(
-                              "Stok: 100",
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            const Text(
-                              "Rp 75.000",
-                              style: TextStyle(
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColor.primary,
-                                ),
-                                child: const Text(
-                                  "Detail",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            )
-
-                          ],
-                        ),
-                      )
-
-                    ],
+                  const Expanded(
+                    child: DashboardCard(
+                      title: "Pendapatan",
+                      total: "2 JT",
+                      icon: Icons.attach_money,
+                    ),
                   ),
-                );
 
-              },
-            )
+                ],
+              ),
 
-          ],
+              const SizedBox(height: 25),
+
+              // BANNER
+              Container(
+                height: 170,
+                width: double.infinity,
+
+                decoration: BoxDecoration(
+
+                  borderRadius:
+                  BorderRadius.circular(24),
+
+                  image: const DecorationImage(
+                    image: AssetImage(
+                      "assets/images/banner.png",
+                    ),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // TITLE
+              Row(
+                mainAxisAlignment:
+                MainAxisAlignment.spaceBetween,
+
+                children: const [
+
+                  Text(
+                    "Produk Terbaru",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight:
+                      FontWeight.bold,
+                    ),
+                  ),
+
+                  Text(
+                    "Lihat Semua",
+                    style: TextStyle(
+                      color: AppColor.primary,
+                    ),
+                  ),
+
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // GRID PRODUCT
+              GridView.builder(
+
+                itemCount: products.length,
+
+                shrinkWrap: true,
+
+                physics:
+                const NeverScrollableScrollPhysics(),
+
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+
+                  crossAxisCount: 2,
+
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+
+                  childAspectRatio: 0.70,
+
+                ),
+
+                itemBuilder: (context, index) {
+
+                  return ProductCard(
+                    product: products[index],
+                  );
+
+                },
+              ),
+
+              const SizedBox(height: 100),
+
+            ],
+          ),
         ),
       ),
-    );
-  }
 
-  Widget card(
-      String title,
-      String total,
-      IconData icon,
-      ) {
+      // BOTTOM NAVBAR
+      bottomNavigationBar: BottomNavigationBar(
 
-    return Container(
+        currentIndex: currentIndex,
 
-      padding: const EdgeInsets.all(20),
+        onTap: (index) {
 
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
+          setState(() {
+            currentIndex = index;
+          });
 
-      child: Column(
+        },
 
-        crossAxisAlignment: CrossAxisAlignment.start,
+        type:
+        BottomNavigationBarType.fixed,
 
-        children: [
+        selectedItemColor:
+        AppColor.primary,
 
-          Icon(
-            icon,
-            color: AppColor.primary,
+        unselectedItemColor:
+        Colors.grey,
+
+        items: const [
+
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
           ),
 
-          const SizedBox(height: 10),
-
-          Text(
-            total,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: "Cart",
           ),
 
-          Text(title),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
 
         ],
       ),
