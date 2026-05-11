@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../config/app_color.dart';
+
 import '../../models/product_model.dart';
 
 import '../../widgets/dashboard_card.dart';
@@ -20,6 +21,9 @@ class _DashboardPageState
     extends State<DashboardPage> {
 
   int currentIndex = 0;
+
+  final TextEditingController searchC =
+  TextEditingController();
 
   final List<ProductModel> products = [
 
@@ -44,13 +48,6 @@ class _DashboardPageState
       image: "assets/images/telur.png",
     ),
 
-    ProductModel(
-      name: "Gula Pasir",
-      price: "Rp 18.000",
-      stock: "40",
-      image: "assets/images/gula.png",
-    ),
-
   ];
 
   @override
@@ -61,10 +58,14 @@ class _DashboardPageState
       backgroundColor: AppColor.background,
 
       appBar: AppBar(
+
         backgroundColor: AppColor.primary,
+
         elevation: 0,
+
         title: const Text(
           "Warung Sembako",
+
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -72,8 +73,11 @@ class _DashboardPageState
         ),
       ),
 
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton:
+      FloatingActionButton(
+
         backgroundColor: AppColor.primary,
+
         child: const Icon(Icons.add),
 
         onPressed: () {
@@ -104,8 +108,13 @@ class _DashboardPageState
 
               // SEARCH
               TextField(
+
+                controller: searchC,
+
                 decoration: InputDecoration(
+
                   hintText: "Cari produk...",
+
                   prefixIcon:
                   const Icon(Icons.search),
 
@@ -115,14 +124,22 @@ class _DashboardPageState
                   border: OutlineInputBorder(
                     borderRadius:
                     BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+
+                    borderSide:
+                    BorderSide.none,
                   ),
                 ),
+
+                onChanged: (value) {
+
+                  setState(() {});
+
+                },
               ),
 
               const SizedBox(height: 25),
 
-              // CARD
+              // STATISTIC
               Row(
                 children: [
 
@@ -177,6 +194,7 @@ class _DashboardPageState
 
               // BANNER
               Container(
+
                 height: 170,
                 width: double.infinity,
 
@@ -186,9 +204,11 @@ class _DashboardPageState
                   BorderRadius.circular(24),
 
                   image: const DecorationImage(
+
                     image: AssetImage(
                       "assets/images/banner.png",
                     ),
+
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -198,13 +218,16 @@ class _DashboardPageState
 
               // TITLE
               Row(
+
                 mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
+                MainAxisAlignment
+                    .spaceBetween,
 
-                children: const [
+                children: [
 
-                  Text(
-                    "Produk Terbaru",
+                  const Text(
+                    "Produk",
+
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight:
@@ -212,47 +235,63 @@ class _DashboardPageState
                     ),
                   ),
 
-                  Text(
-                    "Lihat Semua",
-                    style: TextStyle(
-                      color: AppColor.primary,
+                  TextButton(
+
+                    onPressed: () {
+
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(
+
+                        const SnackBar(
+                          content: Text(
+                            "Semua produk",
+                          ),
+                        ),
+                      );
+
+                    },
+
+                    child: const Text(
+                      "Lihat Semua",
                     ),
-                  ),
+                  )
 
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              // GRID PRODUCT
-              GridView.builder(
+              // SLIDE PRODUCT
+              SizedBox(
 
-                itemCount: products.length,
+                height: 260,
 
-                shrinkWrap: true,
+                child: ListView.builder(
 
-                physics:
-                const NeverScrollableScrollPhysics(),
+                  scrollDirection:
+                  Axis.horizontal,
 
-                gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+                  itemCount: products.length,
 
-                  crossAxisCount: 2,
+                  itemBuilder:
+                      (context, index) {
 
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
+                    return Container(
 
-                  childAspectRatio: 0.70,
+                      width: 180,
 
+                      margin:
+                      const EdgeInsets.only(
+                        right: 15,
+                      ),
+
+                      child: ProductCard(
+                        product:
+                        products[index],
+                      ),
+                    );
+                  },
                 ),
-
-                itemBuilder: (context, index) {
-
-                  return ProductCard(
-                    product: products[index],
-                  );
-
-                },
               ),
 
               const SizedBox(height: 100),
@@ -262,8 +301,9 @@ class _DashboardPageState
         ),
       ),
 
-      // BOTTOM NAVBAR
-      bottomNavigationBar: BottomNavigationBar(
+      // NAVBAR
+      bottomNavigationBar:
+      BottomNavigationBar(
 
         currentIndex: currentIndex,
 
@@ -272,6 +312,38 @@ class _DashboardPageState
           setState(() {
             currentIndex = index;
           });
+
+          if (index == 0) {
+
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+
+              const SnackBar(
+                content: Text("Home"),
+              ),
+            );
+
+          } else if (index == 1) {
+
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+
+              const SnackBar(
+                content: Text("Cart"),
+              ),
+            );
+
+          } else if (index == 2) {
+
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+
+              const SnackBar(
+                content: Text("Profile"),
+              ),
+            );
+
+          }
 
         },
 

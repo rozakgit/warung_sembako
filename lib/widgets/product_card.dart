@@ -38,7 +38,7 @@ class ProductCard extends StatelessWidget {
 
               product.image,
 
-              height: 120,
+              height: 100,
               width: double.infinity,
 
               fit: BoxFit.cover,
@@ -58,7 +58,7 @@ class ProductCard extends StatelessWidget {
                   product.name,
 
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -73,7 +73,7 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
 
                 Text(
                   product.price,
@@ -84,7 +84,7 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
                 SizedBox(
 
@@ -92,14 +92,32 @@ class ProductCard extends StatelessWidget {
 
                   child: ElevatedButton(
 
-                    onPressed: () {},
+                    onPressed: () {
+
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(
+
+                        SnackBar(
+                          content: Text(
+                            "${product.name} dipilih",
+                          ),
+                        ),
+                      );
+
+                    },
 
                     style: ElevatedButton.styleFrom(
 
-                      backgroundColor: AppColor.primary,
+                      backgroundColor:
+                      AppColor.primary,
 
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      shape:
+                      RoundedRectangleBorder(
+
+                        borderRadius:
+                        BorderRadius.circular(
+                          12,
+                        ),
                       ),
                     ),
 
