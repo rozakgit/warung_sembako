@@ -32,23 +32,80 @@ class _DashboardPageState
       name: "Beras Premium",
       price: "Rp 75.000",
       stock: "100",
-      image: "assets/images/beras.png",
+
+      image: "assets/images/b1.jpg",
+
+      images: [
+        "assets/images/b1.jpg",
+        "assets/images/b2.jpg",
+        "assets/images/b3.jpg",
+      ],
     ),
 
     ProductModel(
       name: "Minyak Goreng",
       price: "Rp 20.000",
       stock: "50",
-      image: "assets/images/minyak.png",
+      image: "assets/images/m1.jpg",
+
+      images: [
+        "assets/images/m1.jpg",
+        "assets/images/m2.jpg",
+        "assets/images/m3.jpg",
+      ],
     ),
 
     ProductModel(
       name: "Telur Ayam",
       price: "Rp 30.000",
       stock: "80",
-      image: "assets/images/telur.png",
+      image: "assets/images/t1.jpg",
+
+      images: [
+        "assets/images/t1.jpg",
+        "assets/images/t2.jpg",
+        "assets/images/t3.jpg",
+      ],
     ),
 
+    ProductModel(
+      name: "Gula Pasir",
+      price: "Rp 18.000",
+      stock: "40",
+      image: "assets/images/g1.jpg",
+
+      images: [
+        "assets/images/g1.jpg",
+        "assets/images/g2.jpg",
+        "assets/images/g3.jpg",
+      ],
+    ),
+
+    ProductModel(
+      name: "Mie Instan",
+      price: "Rp 5.000",
+      stock: "200",
+      image: "assets/images/m1.jpg",
+
+      images: [
+        "assets/images/m1.jpg",
+        "assets/images/m2.jpg",
+        "assets/images/m3.jpg",
+      ],
+    ),
+
+    ProductModel(
+      name: "Susu Kaleng",
+      price: "Rp 12.000",
+      stock: "60",
+      image: "assets/images/b1.jpg",
+
+      images: [
+        "assets/images/b1.jpg",
+        "assets/images/b2.jpg",
+        "assets/images/b3.jpg",
+      ],
+    ),
   ];
 
   @override
@@ -207,7 +264,7 @@ class _DashboardPageState
                   image: const DecorationImage(
 
                     image: AssetImage(
-                      "assets/images/banner.png",
+                      "assets/images/b1.jpg",
                     ),
 
                     fit: BoxFit.cover,
@@ -280,7 +337,7 @@ class _DashboardPageState
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
 
-                  childAspectRatio: 0.72,
+                  childAspectRatio: 0.58,
 
                 ),
 
