@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "964916278110",
+    "project_id": "warung-sembako-102bd",
+    "storage_bucket": "warung-sembako-102bd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964916278110:android:e68151bb7ce121c77655cf",
+        "android_client_info": {
+          "package_name": "com.warung.sembako"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArbUzT21h_eB6ARK8hX1y16f_AV1TlRfY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

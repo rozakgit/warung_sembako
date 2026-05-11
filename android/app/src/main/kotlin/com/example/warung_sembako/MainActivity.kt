@@ -1,4 +1,4 @@
-package com.example.warung_sembako
+package com.warung.sembako
 
 import io.flutter.embedding.android.FlutterActivity
 
