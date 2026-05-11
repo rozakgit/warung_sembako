@@ -85,12 +85,12 @@ class _DashboardPageState
       name: "Mie Instan",
       price: "Rp 5.000",
       stock: "200",
-      image: "assets/images/m1.jpg",
+      image: "assets/images/mi1.jpg",
 
       images: [
-        "assets/images/m1.jpg",
-        "assets/images/m2.jpg",
-        "assets/images/m3.jpg",
+        "assets/images/mi1.jpg",
+        "assets/images/mi2.jpg",
+        "assets/images/mi3.jpg",
       ],
     ),
 
@@ -98,12 +98,12 @@ class _DashboardPageState
       name: "Susu Kaleng",
       price: "Rp 12.000",
       stock: "60",
-      image: "assets/images/g1.jpg",
+      image: "assets/images/s1.jpg",
 
       images: [
-        "assets/images/g1.jpg",
-        "assets/images/g2.jpg",
-        "assets/images/g3.jpg",
+        "assets/images/s1.jpg",
+        "assets/images/s2.jpg",
+        "assets/images/s3.jpg",
       ],
     ),
   ];
