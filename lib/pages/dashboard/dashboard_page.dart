@@ -8,6 +8,7 @@ import '../../widgets/dashboard_card.dart';
 import '../../widgets/product_card.dart';
 
 import '../product/add_product_page.dart';
+import '../product/detail_product_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -262,36 +263,49 @@ class _DashboardPageState
               const SizedBox(height: 20),
 
               // SLIDE PRODUCT
-              SizedBox(
+              GridView.builder(
 
-                height: 260,
+                itemCount: products.length,
 
-                child: ListView.builder(
+                shrinkWrap: true,
 
-                  scrollDirection:
-                  Axis.horizontal,
+                physics:
+                const NeverScrollableScrollPhysics(),
 
-                  itemCount: products.length,
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
 
-                  itemBuilder:
-                      (context, index) {
+                  crossAxisCount: 2,
 
-                    return Container(
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
 
-                      width: 180,
+                  childAspectRatio: 0.72,
 
-                      margin:
-                      const EdgeInsets.only(
-                        right: 15,
-                      ),
-
-                      child: ProductCard(
-                        product:
-                        products[index],
-                      ),
-                    );
-                  },
                 ),
+
+                itemBuilder: (context, index) {
+
+                  return ProductCard(
+
+                    product: products[index],
+
+                    onTap: () {
+
+                      Navigator.push(
+
+                        context,
+
+                        MaterialPageRoute(
+
+                          builder: (_) => DetailProductPage(
+                            product: products[index],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
 
               const SizedBox(height: 100),
