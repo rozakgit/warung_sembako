@@ -125,7 +125,7 @@ class _LoginPageState
                         ),
 
                         child: Image.asset(
-                          "assets/icons/logo.png",
+                          "assets/icons/logo.jpg",
                         ),
                       ),
                     ),
