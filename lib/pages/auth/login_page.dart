@@ -102,30 +102,42 @@ class _LoginPageState
                   children: [
 
                     // LOGO
+                    // GANTI FULL BAGIAN LOGO JADI INI
+
                     Container(
 
-                      height: 120,
-                      width: 120,
+                      height: 130,
+                      width: 130,
 
                       decoration: BoxDecoration(
 
-                        color: Colors.white,
+                        shape: BoxShape.circle,
 
-                        borderRadius:
-                        BorderRadius.circular(
-                          30,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 4,
                         ),
+
+                        boxShadow: [
+
+                          BoxShadow(
+
+                            color: Colors.black.withOpacity(0.15),
+
+                            blurRadius: 15,
+
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
 
-                      child: Padding(
-
-                        padding:
-                        const EdgeInsets.all(
-                          18,
-                        ),
+                      child: ClipOval(
 
                         child: Image.asset(
+
                           "assets/icons/logo.jpg",
+
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
