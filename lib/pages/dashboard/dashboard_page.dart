@@ -98,12 +98,12 @@ class _DashboardPageState
       name: "Susu Kaleng",
       price: "Rp 12.000",
       stock: "60",
-      image: "assets/images/b1.jpg",
+      image: "assets/images/g1.jpg",
 
       images: [
-        "assets/images/b1.jpg",
-        "assets/images/b2.jpg",
-        "assets/images/b3.jpg",
+        "assets/images/g1.jpg",
+        "assets/images/g2.jpg",
+        "assets/images/g3.jpg",
       ],
     ),
   ];
