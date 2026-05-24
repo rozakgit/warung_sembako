@@ -18,7 +18,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginPage(),
+      title: 'Warung Sembako',
+      theme: ThemeData(
+        primarySwatch: Colors.orange,
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoginPage(),
+        '/admin': (context) => const AdminPage(),
+        '/cashier': (context) => const CashierPage(),
+      },
     );
   }
 }
