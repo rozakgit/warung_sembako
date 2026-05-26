@@ -1,3 +1,5 @@
+// pages/dashboard/dashboard_page.dart
+
 import 'package:flutter/material.dart';
 
 import '../../config/app_color.dart';
@@ -7,6 +9,7 @@ import '../../models/product_model.dart';
 import '../../widgets/dashboard_card.dart';
 import '../../widgets/product_card.dart';
 
+import '../report/daily_report_page.dart';
 import '../product/add_product_page.dart';
 import '../product/detail_product_page.dart';
 
@@ -29,13 +32,17 @@ class _DashboardPageState
   final List<ProductModel> products = [
 
     ProductModel(
+
       name: "Beras Premium",
+
       price: "Rp 75.000",
+
       stock: "100",
 
       image: "assets/images/b1.jpg",
 
       images: [
+
         "assets/images/b1.jpg",
         "assets/images/b2.jpg",
         "assets/images/b3.jpg",
@@ -43,12 +50,17 @@ class _DashboardPageState
     ),
 
     ProductModel(
+
       name: "Minyak Goreng",
+
       price: "Rp 20.000",
+
       stock: "50",
+
       image: "assets/images/m1.jpg",
 
       images: [
+
         "assets/images/m1.jpg",
         "assets/images/m2.jpg",
         "assets/images/m3.jpg",
@@ -56,12 +68,17 @@ class _DashboardPageState
     ),
 
     ProductModel(
+
       name: "Telur Ayam",
+
       price: "Rp 30.000",
+
       stock: "80",
+
       image: "assets/images/t1.jpg",
 
       images: [
+
         "assets/images/t1.jpg",
         "assets/images/t2.jpg",
         "assets/images/t3.jpg",
@@ -69,12 +86,17 @@ class _DashboardPageState
     ),
 
     ProductModel(
+
       name: "Gula Pasir",
+
       price: "Rp 18.000",
+
       stock: "40",
+
       image: "assets/images/g1.jpg",
 
       images: [
+
         "assets/images/g1.jpg",
         "assets/images/g2.jpg",
         "assets/images/g3.jpg",
@@ -82,12 +104,17 @@ class _DashboardPageState
     ),
 
     ProductModel(
+
       name: "Mie Instan",
+
       price: "Rp 5.000",
+
       stock: "200",
+
       image: "assets/images/mi1.jpg",
 
       images: [
+
         "assets/images/mi1.jpg",
         "assets/images/mi2.jpg",
         "assets/images/mi3.jpg",
@@ -95,12 +122,17 @@ class _DashboardPageState
     ),
 
     ProductModel(
+
       name: "Susu Kaleng",
+
       price: "Rp 12.000",
+
       stock: "60",
+
       image: "assets/images/s1.jpg",
 
       images: [
+
         "assets/images/s1.jpg",
         "assets/images/s2.jpg",
         "assets/images/s3.jpg",
@@ -122,6 +154,7 @@ class _DashboardPageState
         elevation: 0,
 
         title: const Text(
+
           "Warung Sembako",
 
           style: TextStyle(
@@ -141,13 +174,15 @@ class _DashboardPageState
         onPressed: () {
 
           Navigator.push(
+
             context,
+
             MaterialPageRoute(
+
               builder: (_) =>
               const AddProductPage(),
             ),
           );
-
         },
       ),
 
@@ -164,7 +199,10 @@ class _DashboardPageState
 
             children: [
 
+              // ======================
               // SEARCH
+              // ======================
+
               TextField(
 
                 controller: searchC,
@@ -177,9 +215,11 @@ class _DashboardPageState
                   const Icon(Icons.search),
 
                   filled: true,
+
                   fillColor: Colors.white,
 
                   border: OutlineInputBorder(
+
                     borderRadius:
                     BorderRadius.circular(16),
 
@@ -197,14 +237,22 @@ class _DashboardPageState
 
               const SizedBox(height: 25),
 
+              // ======================
               // STATISTIC
+              // ======================
+
               Row(
+
                 children: [
 
                   const Expanded(
+
                     child: DashboardCard(
+
                       title: "Produk",
+
                       total: "120",
+
                       icon: Icons.shopping_bag,
                     ),
                   ),
@@ -212,25 +260,33 @@ class _DashboardPageState
                   const SizedBox(width: 15),
 
                   const Expanded(
+
                     child: DashboardCard(
+
                       title: "Order",
+
                       total: "80",
+
                       icon: Icons.receipt_long,
                     ),
                   ),
-
                 ],
               ),
 
               const SizedBox(height: 15),
 
               Row(
+
                 children: [
 
                   const Expanded(
+
                     child: DashboardCard(
+
                       title: "Stok",
+
                       total: "500",
+
                       icon: Icons.inventory,
                     ),
                   ),
@@ -238,22 +294,155 @@ class _DashboardPageState
                   const SizedBox(width: 15),
 
                   const Expanded(
+
                     child: DashboardCard(
+
                       title: "Pendapatan",
+
                       total: "2 JT",
+
                       icon: Icons.attach_money,
                     ),
                   ),
-
                 ],
+              ),
+
+              // ======================
+              // REPORT CARD
+              // ======================
+
+              const SizedBox(height: 25),
+
+              GestureDetector(
+
+                onTap: () {
+
+                  Navigator.push(
+
+                    context,
+
+                    MaterialPageRoute(
+
+                      builder: (_) =>
+                      const DailyReportPage(),
+                    ),
+                  );
+                },
+
+                child: Container(
+
+                  padding:
+                  const EdgeInsets.all(20),
+
+                  decoration: BoxDecoration(
+
+                    color: Colors.white,
+
+                    borderRadius:
+                    BorderRadius.circular(24),
+
+                    boxShadow: [
+
+                      BoxShadow(
+
+                        color:
+                        Colors.black.withOpacity(
+                          0.05,
+                        ),
+
+                        blurRadius: 10,
+
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+
+                  child: Row(
+
+                    children: [
+
+                      Container(
+
+                        padding:
+                        const EdgeInsets.all(15),
+
+                        decoration: BoxDecoration(
+
+                          color: AppColor.primary
+                              .withOpacity(0.1),
+
+                          borderRadius:
+                          BorderRadius.circular(
+                            16,
+                          ),
+                        ),
+
+                        child: const Icon(
+
+                          Icons.bar_chart,
+
+                          color: AppColor.primary,
+
+                          size: 30,
+                        ),
+                      ),
+
+                      const SizedBox(width: 15),
+
+                      const Expanded(
+
+                        child: Column(
+
+                          crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+
+                          children: [
+
+                            Text(
+
+                              "Laporan Harian",
+
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight:
+                                FontWeight.bold,
+                              ),
+                            ),
+
+                            SizedBox(height: 5),
+
+                            Text(
+
+                              "Lihat pendapatan dan transaksi hari ini",
+
+                              style: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
               ),
 
               const SizedBox(height: 25),
 
+              // ======================
               // BANNER
+              // ======================
+
               Container(
 
                 height: 170,
+
                 width: double.infinity,
 
                 decoration: BoxDecoration(
@@ -274,7 +463,10 @@ class _DashboardPageState
 
               const SizedBox(height: 30),
 
+              // ======================
               // TITLE
+              // ======================
+
               Row(
 
                 mainAxisAlignment:
@@ -284,6 +476,7 @@ class _DashboardPageState
                 children: [
 
                   const Text(
+
                     "Produk",
 
                     style: TextStyle(
@@ -306,20 +499,21 @@ class _DashboardPageState
                           ),
                         ),
                       );
-
                     },
 
                     child: const Text(
                       "Lihat Semua",
                     ),
                   )
-
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              // SLIDE PRODUCT
+              // ======================
+              // PRODUCT GRID
+              // ======================
+
               GridView.builder(
 
                 itemCount: products.length,
@@ -335,10 +529,10 @@ class _DashboardPageState
                   crossAxisCount: 2,
 
                   crossAxisSpacing: 15,
+
                   mainAxisSpacing: 15,
 
                   childAspectRatio: 0.58,
-
                 ),
 
                 itemBuilder: (context, index) {
@@ -355,9 +549,11 @@ class _DashboardPageState
 
                         MaterialPageRoute(
 
-                          builder: (_) => DetailProductPage(
-                            product: products[index],
-                          ),
+                          builder: (_) =>
+                              DetailProductPage(
+                                product:
+                                products[index],
+                              ),
                         ),
                       );
                     },
@@ -366,13 +562,15 @@ class _DashboardPageState
               ),
 
               const SizedBox(height: 100),
-
             ],
           ),
         ),
       ),
 
-      // NAVBAR
+      // ======================
+      // BOTTOM NAVBAR
+      // ======================
+
       bottomNavigationBar:
       BottomNavigationBar(
 
@@ -413,9 +611,7 @@ class _DashboardPageState
                 content: Text("Profile"),
               ),
             );
-
           }
-
         },
 
         type:
@@ -443,7 +639,6 @@ class _DashboardPageState
             icon: Icon(Icons.person),
             label: "Profile",
           ),
-
         ],
       ),
     );
