@@ -1,7 +1,8 @@
 // pages/auth/register_page.dart
 
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart'; // Tambahan import untuk menangkap error spesifik
+import 'login_page.dart';
 import '../../config/app_color.dart';
 import '../../services/auth_service.dart';
 
@@ -9,128 +10,119 @@ class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() =>
-      _RegisterPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState
-    extends State<RegisterPage> {
-
+class _RegisterPageState extends State<RegisterPage> {
   final nameC = TextEditingController();
   final usernameC = TextEditingController();
   final phoneC = TextEditingController();
   final emailC = TextEditingController();
   final passC = TextEditingController();
-  final confirmPassC =
-  TextEditingController();
+  final confirmPassC = TextEditingController();
 
   bool loading = false;
-
+  String selectedRole = "cashier";
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
 
+  // BAGIAN LOGIC YANG DISESUAIKAN (Pesan Error Lebih Ramah)
   register() async {
-
-    if (passC.text !=
-        confirmPassC.text) {
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
+    if (passC.text != confirmPassC.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Konfirmasi password tidak sama",
-          ),
+          content: Text("Konfirmasi password tidak sama"),
         ),
       );
-
       return;
     }
 
     try {
-
       setState(() {
         loading = true;
       });
 
+      // 1. Simpan data ke Firebase
       await AuthService().register(
-
+        name: nameC.text,
+        username: usernameC.text,
+        phone: phoneC.text,
         email: emailC.text,
         password: passC.text,
+        role: selectedRole,
       );
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      if (!mounted) return;
 
+      // 2. Tampilkan pesan berhasil
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Register berhasil",
-          ),
+          content: Text("Register berhasil, silakan Login"),
         ),
       );
 
-      Navigator.pop(context);
+      // 3. PAKSA PINDAH KE HALAMAN LOGIN (Ini yang diubah)
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+            (route) => false, // Menghapus riwayat halaman register
+      );
 
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      String errorMessage = "Terjadi kesalahan";
+
+      if (e.code == 'email-already-in-use') {
+        errorMessage = "Email ini sudah terdaftar. Silakan gunakan email lain.";
+      } else if (e.code == 'weak-password') {
+        errorMessage = "Password terlalu lemah. Gunakan minimal 6 karakter.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "Format email tidak valid.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     } catch (e) {
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.toString(),
+            e.toString().contains('email-already-in-use')
+                ? "Email ini sudah terdaftar. Silakan gunakan email lain."
+                : "Gagal mendaftar: ${e.toString()}",
           ),
         ),
       );
-
+    } finally {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     }
-
-    setState(() {
-      loading = false;
-    });
-
   }
 
   Widget customField({
-
     required TextEditingController controller,
     required String hint,
     required IconData icon,
-
     bool obscureText = false,
-
     Widget? suffixIcon,
-
-    TextInputType keyboardType =
-        TextInputType.text,
-
+    TextInputType keyboardType = TextInputType.text,
   }) {
-
     return TextField(
-
       controller: controller,
-
       obscureText: obscureText,
-
       keyboardType: keyboardType,
-
       decoration: InputDecoration(
-
         hintText: hint,
-
         prefixIcon: Icon(icon),
-
         suffixIcon: suffixIcon,
-
         filled: true,
-
         fillColor: AppColor.background,
-
         border: OutlineInputBorder(
-
-          borderRadius:
-          BorderRadius.circular(18),
-
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
       ),
@@ -139,97 +131,92 @@ class _RegisterPageState
 
   @override
   Widget build(BuildContext context) {
-
+    // UI TETAP SAMA
     return Scaffold(
-
       backgroundColor: AppColor.primary,
-
       body: SafeArea(
-
         child: SingleChildScrollView(
-
           child: Column(
-
             children: [
-
               // HEADER
               Container(
-
-                padding:
-                const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 25,
                   vertical: 40,
                 ),
-
                 child: Column(
-
                   children: [
-
                     // LOGO
                     Container(
-
                       height: 120,
                       width: 120,
-
                       decoration: BoxDecoration(
-
                         shape: BoxShape.circle,
-
                         border: Border.all(
                           color: Colors.white,
                           width: 4,
                         ),
-
                         boxShadow: [
-
                           BoxShadow(
-
-                            color:
-                            Colors.black.withOpacity(
+                            color: Colors.black.withOpacity(
                               0.15,
                             ),
-
                             blurRadius: 15,
-
-                            offset:
-                            const Offset(0, 8),
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-
                       child: ClipOval(
-
                         child: Image.asset(
-
                           "assets/icons/logo.jpg",
-
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
+                    DropdownButtonFormField<String>(
+                      value: selectedRole,
+                      decoration: InputDecoration(
+                        labelText: "Role",
+                        prefixIcon: const Icon(
+                          Icons.admin_panel_settings,
+                        ),
+                        filled: true,
+                        fillColor: AppColor.background,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(18),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: "admin",
+                          child: Text("Admin"),
+                        ),
+                        DropdownMenuItem(
+                          value: "cashier",
+                          child: Text("Kasir"),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedRole = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
                     const Text(
-
                       "Buat Akun Baru",
-
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 30,
-                        fontWeight:
-                        FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
                     const Text(
-
                       "Daftar dan mulai belanja sekarang",
-
                       textAlign: TextAlign.center,
-
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 15,
@@ -241,221 +228,126 @@ class _RegisterPageState
 
               // FORM
               Container(
-
                 width: double.infinity,
-
-                padding:
-                const EdgeInsets.all(25),
-
+                padding: const EdgeInsets.all(25),
                 decoration: const BoxDecoration(
-
                   color: Colors.white,
-
-                  borderRadius:
-                  BorderRadius.vertical(
+                  borderRadius: BorderRadius.vertical(
                     top: Radius.circular(35),
                   ),
                 ),
-
                 child: Column(
-
                   children: [
-
                     // NAMA
                     customField(
-
                       controller: nameC,
-
                       hint: "Nama Lengkap",
-
                       icon: Icons.person,
                     ),
-
                     const SizedBox(height: 20),
-
                     // USERNAME
                     customField(
-
                       controller: usernameC,
-
                       hint: "Username",
-
                       icon: Icons.alternate_email,
                     ),
-
                     const SizedBox(height: 20),
-
                     // PHONE
                     customField(
-
                       controller: phoneC,
-
                       hint: "Nomor HP",
-
                       icon: Icons.phone,
-
-                      keyboardType:
-                      TextInputType.phone,
+                      keyboardType: TextInputType.phone,
                     ),
-
                     const SizedBox(height: 20),
-
                     // EMAIL
                     customField(
-
                       controller: emailC,
-
                       hint: "Email",
-
                       icon: Icons.email,
                     ),
-
                     const SizedBox(height: 20),
-
                     // PASSWORD
                     customField(
-
                       controller: passC,
-
                       hint: "Password",
-
                       icon: Icons.lock,
-
-                      obscureText:
-                      obscurePassword,
-
+                      obscureText: obscurePassword,
                       suffixIcon: IconButton(
-
                         onPressed: () {
-
                           setState(() {
-
-                            obscurePassword =
-                            !obscurePassword;
-
+                            obscurePassword = !obscurePassword;
                           });
-
                         },
-
                         icon: Icon(
-
                           obscurePassword
                               ? Icons.visibility_off
                               : Icons.visibility,
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     // CONFIRM PASSWORD
                     customField(
-
-                      controller:
-                      confirmPassC,
-
-                      hint:
-                      "Konfirmasi Password",
-
+                      controller: confirmPassC,
+                      hint: "Konfirmasi Password",
                       icon: Icons.lock,
-
-                      obscureText:
-                      obscureConfirmPassword,
-
+                      obscureText: obscureConfirmPassword,
                       suffixIcon: IconButton(
-
                         onPressed: () {
-
                           setState(() {
-
-                            obscureConfirmPassword =
-                            !obscureConfirmPassword;
-
+                            obscureConfirmPassword = !obscureConfirmPassword;
                           });
-
                         },
-
                         icon: Icon(
-
                           obscureConfirmPassword
                               ? Icons.visibility_off
                               : Icons.visibility,
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 35),
-
                     // BUTTON
                     SizedBox(
-
                       width: double.infinity,
                       height: 58,
-
                       child: ElevatedButton(
-
-                        onPressed:
-                        loading ? null : register,
-
-                        style:
-                        ElevatedButton.styleFrom(
-
-                          backgroundColor:
-                          AppColor.primary,
-
-                          shape:
-                          RoundedRectangleBorder(
-
-                            borderRadius:
-                            BorderRadius.circular(
+                        onPressed: loading ? null : register,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
                               18,
                             ),
                           ),
                         ),
-
                         child: loading
-
                             ? const CircularProgressIndicator(
                           color: Colors.white,
                         )
-
                             : const Text(
-
                           "Register",
-
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
-                            fontWeight:
-                            FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     Row(
-
-                      mainAxisAlignment:
-                      MainAxisAlignment.center,
-
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-
                         const Text(
                           "Sudah punya akun?",
                         ),
-
                         TextButton(
-
                           onPressed: () {
-
                             Navigator.pop(
                               context,
                             );
-
                           },
-
                           child: const Text(
                             "Login",
                           ),

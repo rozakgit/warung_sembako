@@ -1,122 +1,201 @@
 import 'package:flutter/material.dart';
-
+import 'product_management_page.dart';
 import '../../config/app_color.dart';
-
-import '../report/daily_report_page.dart';
+import '../profile/profile_page.dart';
+import 'user_management_page.dart';
 
 class AdminPage extends StatelessWidget {
-
   const AdminPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       backgroundColor: AppColor.background,
 
       appBar: AppBar(
-
         backgroundColor: AppColor.primary,
-
+        elevation: 0,
         title: const Text(
-
-          "Admin Dashboard",
-
+          "Dashboard Admin",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfilePage(),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          )
+        ],
       ),
 
-      body: SafeArea(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
 
-        child: Padding(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
 
-          padding: const EdgeInsets.all(20),
+          children: [
 
-          child: GridView.count(
-
-            crossAxisCount: 2,
-
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
-
-            children: [
-
-              // PRODUK
-              buildMenu(
-
-                context,
-
-                icon: Icons.inventory,
-
-                title: "Kelola Produk",
-
-                onTap: () {},
+            const Text(
+              "Selamat Datang Admin 👋",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
+            ),
 
-              // TRANSAKSI
-              buildMenu(
+            const SizedBox(height: 25),
 
-                context,
+            Row(
+              children: [
 
-                icon: Icons.receipt_long,
-
-                title: "Transaksi",
-
-                onTap: () {},
-              ),
-
-              // LAPORAN
-              buildMenu(
-
-                context,
-
-                icon: Icons.bar_chart,
-
-                title: "Laporan",
-
-                onTap: () {
-
-                  Navigator.push(
-
+                Expanded(
+                  child: _menuCard(
                     context,
+                    title: "Produk",
+                    icon: Icons.shopping_bag,
+                    color: Colors.orange,
+                    onTap: () {
+                      // Product Management
+                    },
+                  ),
+                ),
 
-                    MaterialPageRoute(
+                const SizedBox(width: 15),
 
-                      builder: (_) =>
-                      const DailyReportPage(),
+                Expanded(
+                  child: _menuCard(
+                    context,
+                    title: "Pengguna",
+                    icon: Icons.people,
+                    color: Colors.blue,
+                    onTap: () {
+                      // User Management
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              children: [
+
+                Expanded(
+                  child: _menuCard(
+                    context,
+                    title: "Laporan Harian",
+                    icon: Icons.bar_chart,
+                    color: Colors.green,
+                    onTap: () {
+
+                      Navigator.push(
+
+                        context,
+
+                        MaterialPageRoute(
+
+                          builder: (_) =>
+                          const UserManagementPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(width: 15),
+
+                Expanded(
+                  child: _menuCard(
+                    context,
+                    title: "Laporan Bulanan",
+                    icon: Icons.analytics,
+                    color: Colors.purple,
+                    onTap: () {},
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            const Text(
+              "Statistik Hari Ini",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Container(
+              padding: const EdgeInsets.all(20),
+
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius:
+                BorderRadius.circular(20),
+
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(
+                      0.05,
                     ),
-                  );
-                },
+                    blurRadius: 10,
+                  )
+                ],
               ),
 
-              // PELANGGAN
-              buildMenu(
+              child: Column(
+                children: [
 
-                context,
+                  _statRow(
+                    "Pendapatan",
+                    "Rp 1.500.000",
+                  ),
 
-                icon: Icons.people,
+                  const Divider(),
 
-                title: "Pelanggan",
+                  _statRow(
+                    "Transaksi",
+                    "35",
+                  ),
 
-                onTap: () {},
+                  const Divider(),
+
+                  _statRow(
+                    "Produk Terjual",
+                    "120",
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget buildMenu(
-
+  Widget _menuCard(
       BuildContext context, {
 
-        required IconData icon,
         required String title,
+        required IconData icon,
+        required Color color,
         required VoidCallback onTap,
 
       }) {
@@ -127,25 +206,22 @@ class AdminPage extends StatelessWidget {
 
       child: Container(
 
+        height: 130,
+
         decoration: BoxDecoration(
 
           color: Colors.white,
 
           borderRadius:
-          BorderRadius.circular(24),
+          BorderRadius.circular(20),
 
           boxShadow: [
 
             BoxShadow(
-
-              color:
-              Colors.black.withOpacity(
+              color: Colors.black.withOpacity(
                 0.05,
               ),
-
               blurRadius: 10,
-
-              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -157,46 +233,52 @@ class AdminPage extends StatelessWidget {
 
           children: [
 
-            Container(
-
-              padding: const EdgeInsets.all(18),
-
-              decoration: BoxDecoration(
-
-                color:
-                AppColor.primary.withOpacity(
-                  0.1,
-                ),
-
-                borderRadius:
-                BorderRadius.circular(18),
-              ),
-
-              child: Icon(
-
-                icon,
-
-                color: AppColor.primary,
-
-                size: 35,
-              ),
+            Icon(
+              icon,
+              size: 40,
+              color: color,
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
 
             Text(
-
               title,
-
               textAlign: TextAlign.center,
-
               style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                FontWeight.bold,
               ),
-            )
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _statRow(
+      String title,
+      String value,
+      ) {
+    return Padding(
+      padding:
+      const EdgeInsets.symmetric(
+        vertical: 10,
+      ),
+      child: Row(
+        mainAxisAlignment:
+        MainAxisAlignment.spaceBetween,
+        children: [
+
+          Text(title),
+
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight:
+              FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
