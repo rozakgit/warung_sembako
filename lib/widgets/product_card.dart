@@ -114,7 +114,7 @@ class _ProductCardState extends State<ProductCard> {
 
                     // PRICE
                     Text(
-                      widget.product.price,
+                      widget.product.price.toString(),
                       style: const TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,

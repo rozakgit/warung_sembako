@@ -2,12 +2,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import '../cashier/cart_page.dart';
 import '../../config/app_color.dart';
 import '../../models/product_model.dart';
+import '../../services/product_service.dart';
 import '../../widgets/dashboard_card.dart';
 import '../../widgets/product_card.dart';
 import '../admin/daily_report_page.dart';
+import '../admin/product_management_page.dart';
+import '../admin/user_management_page.dart'; // Import Halaman User Management
 import '../product/add_product_page.dart';
 import '../product/detail_product_page.dart';
 import '../profile/profile_page.dart';
@@ -23,17 +26,15 @@ class _DashboardPageState extends State<DashboardPage> {
   int currentIndex = 0;
   final TextEditingController searchC = TextEditingController();
 
-  // Variabel untuk menyimpan role dan status loading
   String userRole = 'cashier';
   bool isLoadingRole = true;
 
   @override
   void initState() {
     super.initState();
-    _checkUserRole(); // Ambil role saat halaman pertama kali dimuat
+    _checkUserRole();
   }
 
-  // Fungsi mengambil role dari Firestore secara realtime/async
   void _checkUserRole() async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -58,78 +59,8 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  final List<ProductModel> products = [
-    ProductModel(
-      name: "Beras Premium",
-      price: "Rp 75.000",
-      stock: "100",
-      image: "assets/images/b1.jpg",
-      images: [
-        "assets/images/b1.jpg",
-        "assets/images/b2.jpg",
-        "assets/images/b3.jpg",
-      ],
-    ),
-    ProductModel(
-      name: "Minyak Goreng",
-      price: "Rp 20.000",
-      stock: "50",
-      image: "assets/images/m1.jpg",
-      images: [
-        "assets/images/m1.jpg",
-        "assets/images/m2.jpg",
-        "assets/images/m3.jpg",
-      ],
-    ),
-    ProductModel(
-      name: "Telur Ayam",
-      price: "Rp 30.000",
-      stock: "80",
-      image: "assets/images/t1.jpg",
-      images: [
-        "assets/images/t1.jpg",
-        "assets/images/t2.jpg",
-        "assets/images/t3.jpg",
-      ],
-    ),
-    ProductModel(
-      name: "Gula Pasir",
-      price: "Rp 18.000",
-      stock: "40",
-      image: "assets/images/g1.jpg",
-      images: [
-        "assets/images/g1.jpg",
-        "assets/images/g2.jpg",
-        "assets/images/g3.jpg",
-      ],
-    ),
-    ProductModel(
-      name: "Mie Instan",
-      price: "Rp 5.000",
-      stock: "200",
-      image: "assets/images/mi1.jpg",
-      images: [
-        "assets/images/mi1.jpg",
-        "assets/images/mi2.jpg",
-        "assets/images/mi3.jpg",
-      ],
-    ),
-    ProductModel(
-      name: "Susu Kaleng",
-      price: "Rp 12.000",
-      stock: "60",
-      image: "assets/images/s1.jpg",
-      images: [
-        "assets/images/s1.jpg",
-        "assets/images/s2.jpg",
-        "assets/images/s3.jpg",
-      ],
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    // Menampilkan loading indikator tipis di tengah layar saat memvalidasi role
     if (isLoadingRole) {
       return const Scaffold(
         body: Center(
@@ -151,8 +82,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
       ),
-
-      // LOGIKA ROLE 1: FloatingActionButton hanya muncul jika role == 'admin'
       floatingActionButton: userRole == 'admin'
           ? FloatingActionButton(
         backgroundColor: AppColor.primary,
@@ -166,17 +95,14 @@ class _DashboardPageState extends State<DashboardPage> {
           );
         },
       )
-          : null, // Jika kasir, tombol + hilang otomatis
-
+          : null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ======================
               // SEARCH
-              // ======================
               TextField(
                 controller: searchC,
                 decoration: InputDecoration(
@@ -195,9 +121,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 25),
 
-              // ======================
               // STATISTIC
-              // ======================
               Row(
                 children: const [
                   Expanded(
@@ -238,9 +162,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
 
-              // LOGIKA ROLE 2: Blok Laporan Harian hanya dirender jika role == 'admin'
+              // MENU KHUSUS ADMIN
               if (userRole == 'admin') ...[
                 const SizedBox(height: 25),
+                // MENU LAPORAN HARIAN
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -307,12 +232,148 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 15),
+                // MENU KELOLA PRODUK
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProductManagementPage(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: AppColor.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.edit_note,
+                            color: AppColor.primary,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "Kelola Produk",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                "Ubah harga, tambah stok, hapus produk",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+                // MENU KELOLA USER (TAHAP 4)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UserManagementPage(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: AppColor.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.people_alt,
+                            color: AppColor.primary,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "Kelola User",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                "Atur hak akses kasir/admin dan hapus akun",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
               const SizedBox(height: 25),
 
-              // ======================
               // BANNER
-              // ======================
               Container(
                 height: 170,
                 width: double.infinity,
@@ -326,9 +387,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 30),
 
-              // ======================
               // TITLE
-              // ======================
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -340,43 +399,71 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Semua produk"),
-                        ),
-                      );
-                    },
+                    onPressed: () {},
                     child: const Text("Lihat Semua"),
                   )
                 ],
               ),
               const SizedBox(height: 20),
 
-              // ======================
-              // PRODUCT GRID
-              // ======================
-              GridView.builder(
-                itemCount: products.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                  childAspectRatio: 0.58,
-                ),
-                itemBuilder: (context, index) {
-                  return ProductCard(
-                    product: products[index],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DetailProductPage(
-                            product: products[index],
-                          ),
+              // PRODUCT GRID (REALTIME FIREBASE)
+              StreamBuilder<List<ProductModel>>(
+                stream: ProductService().getProducts(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Text(
+                          "Belum ada produk. Tambahkan produk baru!",
+                          style: TextStyle(color: Colors.grey),
                         ),
+                      ),
+                    );
+                  }
+
+                  var products = snapshot.data!;
+
+                  if (searchC.text.isNotEmpty) {
+                    products = products.where((p) => p.name.toLowerCase().contains(searchC.text.toLowerCase())).toList();
+                  }
+
+                  return GridView.builder(
+                    itemCount: products.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 15,
+                      mainAxisSpacing: 15,
+                      childAspectRatio: 0.58,
+                    ),
+                    itemBuilder: (context, index) {
+                      return ProductCard(
+                        product: products[index],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailProductPage(
+                                product: products[index],
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
@@ -388,9 +475,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
 
-      // ======================
       // BOTTOM NAVBAR
-      // ======================
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
@@ -398,15 +483,13 @@ class _DashboardPageState extends State<DashboardPage> {
             setState(() {
               currentIndex = index;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Home")),
-            );
           } else if (index == 1) {
-            setState(() {
-              currentIndex = index;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Cart")),
+            // Membuka halaman Keranjang saat icon Cart di bawah ditekan
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CartPage(),
+              ),
             );
           } else if (index == 2) {
             setState(() {
