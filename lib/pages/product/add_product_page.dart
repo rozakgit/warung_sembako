@@ -1,10 +1,9 @@
 // pages/product/add_product_page.dart
 
 import 'dart:io';
-import 'dart:convert';
+import 'dart:convert'; // Untuk fungsi base64
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
 
 import '../../config/app_color.dart';
 import '../../models/product_model.dart';
@@ -20,6 +19,7 @@ class AddProductPage extends StatefulWidget {
 class _AddProductPageState extends State<AddProductPage> {
   final nameC = TextEditingController();
   final priceC = TextEditingController();
+  final modalC = TextEditingController(); // REVISI: Tambah controller Harga Modal (Harga Beli)
   final stockC = TextEditingController();
 
   bool loading = false;
@@ -28,10 +28,11 @@ class _AddProductPageState extends State<AddProductPage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 60, // Kompres agar upload cepat
+      source: source,
+      maxWidth: 400,    // Membatasi lebar gambar agar ukuran Base64 hemat
+      imageQuality: 50,  // Kompres kualitas foto demi performa maksimal
     );
 
     if (pickedFile != null) {
@@ -41,10 +42,48 @@ class _AddProductPageState extends State<AddProductPage> {
     }
   }
 
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Pilih Sumber Foto", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: AppColor.primary, size: 30),
+                title: const Text("Ambil dari Kamera"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Colors.blue, size: 30),
+                title: const Text("Pilih dari Galeri"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void saveProduct() async {
-    if (nameC.text.isEmpty || priceC.text.isEmpty || stockC.text.isEmpty) {
+    // REVISI: Validasi pengecekan field modalC tidak boleh kosong
+    if (nameC.text.isEmpty || priceC.text.isEmpty || modalC.text.isEmpty || stockC.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Nama, Harga, dan Stok tidak boleh kosong")),
+        const SnackBar(content: Text("Nama, Harga Modal, Harga Jual, dan Stok tidak boleh kosong")),
       );
       return;
     }
@@ -55,42 +94,30 @@ class _AddProductPageState extends State<AddProductPage> {
       });
 
       int price = int.parse(priceC.text.replaceAll(RegExp(r'[^0-9]'), ''));
+      int modal = int.parse(modalC.text.replaceAll(RegExp(r'[^0-9]'), '')); // REVISI: Parsing nilai Harga Modal
       int stock = int.parse(stockC.text.replaceAll(RegExp(r'[^0-9]'), ''));
 
-      String imageUrl = 'assets/images/b1.jpg'; // Default jika tidak upload gambar
+      String imageUrl = 'https://via.placeholder.com/400x400.png?text=Tanpa+Foto';
 
       // ==========================================
-      // LOGIKA UPLOAD GAMBAR KE IMGBB (100% GRATIS)
+      // AKSI JITU: UBAH GAMBAR JADI BASE64 STRING
       // ==========================================
       if (_imageFile != null) {
-        // GANTI TEXT DI BAWAH INI DENGAN API KEY DARI WEB IMGBB
-        String apiKey = 'e81eb7db0469531e883488c8c1541082';
-
-        var request = http.MultipartRequest('POST', Uri.parse('https://api.imgbb.com/1/upload?key=$apiKey'));
-        request.files.add(await http.MultipartFile.fromPath('image', _imageFile!.path));
-
-        var response = await request.send();
-        var responseData = await response.stream.bytesToString();
-        var result = jsonDecode(responseData);
-
-        if (result['success']) {
-          // Jika berhasil, ambil link URL gambarnya
-          imageUrl = result['data']['url'];
-        } else {
-          throw Exception("Gagal upload gambar ke ImgBB");
-        }
+        List<int> imageBytes = await _imageFile!.readAsBytes();
+        imageUrl = base64Encode(imageBytes); // Mengonversi foto menjadi teks
       }
 
-      // Membentuk Model
+      // REVISI: Masukkan data 'modal' ke dalam konstruktor ProductModel
+      // Note: Pastikan field 'modal' sudah ditambahkan di file product_model.dart kamu ya!
       ProductModel newProduct = ProductModel(
         name: nameC.text,
         price: price,
+        modal: modal, // Field Baru Harga Modal Agen
         stock: stock,
         image: imageUrl,
         isActive: isActive,
       );
 
-      // Kirim ke Firebase Firestore
       await ProductService().addProduct(newProduct);
 
       if (!mounted) return;
@@ -170,10 +197,9 @@ class _AddProductPageState extends State<AddProductPage> {
                 const Text("Data Produk", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 30),
 
-                // UPLOAD GAMBAR
                 Center(
                   child: GestureDetector(
-                    onTap: _pickImage,
+                    onTap: _showImageSourceDialog,
                     child: Container(
                       height: 150,
                       width: 150,
@@ -202,12 +228,16 @@ class _AddProductPageState extends State<AddProductPage> {
 
                 customField(controller: nameC, hint: "Nama Produk", icon: Icons.shopping_bag),
                 const SizedBox(height: 20),
-                customField(controller: priceC, hint: "Harga (Angka)", icon: Icons.attach_money, keyboardType: TextInputType.number),
+
+                // REVISI: Menampilkan Input Baru untuk Harga Modal (Harga Beli dari Supplier)
+                customField(controller: modalC, hint: "Harga Modal / Beli Agen (Angka)", icon: Icons.account_balance_wallet_outlined, keyboardType: TextInputType.number),
+                const SizedBox(height: 20),
+
+                customField(controller: priceC, hint: "Harga Jual Toko (Angka)", icon: Icons.attach_money, keyboardType: TextInputType.number),
                 const SizedBox(height: 20),
                 customField(controller: stockC, hint: "Jumlah Stok (Angka)", icon: Icons.inventory, keyboardType: TextInputType.number),
                 const SizedBox(height: 20),
 
-                // TOGGLE STATUS
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                   decoration: BoxDecoration(

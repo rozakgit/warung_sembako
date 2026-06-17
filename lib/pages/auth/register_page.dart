@@ -1,7 +1,8 @@
 // pages/auth/register_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Tambahan import untuk menangkap error spesifik
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Tambahan untuk akses Firestore langsung
 import 'login_page.dart';
 import '../../config/app_color.dart';
 import '../../services/auth_service.dart';
@@ -26,7 +27,6 @@ class _RegisterPageState extends State<RegisterPage> {
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
 
-  // BAGIAN LOGIC YANG DISESUAIKAN (Pesan Error Lebih Ramah)
   register() async {
     if (passC.text != confirmPassC.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -42,7 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
         loading = true;
       });
 
-      // 1. Simpan data ke Firebase
+      // 1. Simpan data awal ke Firebase via AuthService
       await AuthService().register(
         name: nameC.text,
         username: usernameC.text,
@@ -52,20 +52,33 @@ class _RegisterPageState extends State<RegisterPage> {
         role: selectedRole,
       );
 
+      // ====================================================================
+      // REVISI: INJEKSI STATUS APPROVAL SECARA REALTIME UNTUK KASIR
+      // ====================================================================
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'isApproved': selectedRole == 'admin' ? true : false, // Admin langsung aktif, Kasir butuh verifikasi
+        });
+      }
+
       if (!mounted) return;
 
       // 2. Tampilkan pesan berhasil
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Register berhasil, silakan Login"),
+        SnackBar(
+          content: Text(selectedRole == 'cashier'
+              ? "Pendaftaran berhasil! Tunggu verifikasi/persetujuan Admin."
+              : "Register Admin berhasil, silakan Login"),
+          backgroundColor: Colors.green,
         ),
       );
 
-      // 3. PAKSA PINDAH KE HALAMAN LOGIN (Ini yang diubah)
+      // 3. Paksa pindah ke halaman login
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
-            (route) => false, // Menghapus riwayat halaman register
+            (route) => false,
       );
 
     } on FirebaseAuthException catch (e) {
@@ -131,7 +144,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    // UI TETAP SAMA
     return Scaffold(
       backgroundColor: AppColor.primary,
       body: SafeArea(
@@ -158,9 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(
-                              0.15,
-                            ),
+                            color: Colors.black.withOpacity(0.15),
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           ),
@@ -177,7 +187,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     DropdownButtonFormField<String>(
                       value: selectedRole,
                       decoration: InputDecoration(
-                        labelText: "Role",
+                        labelText: "Role Hak Akses",
                         prefixIcon: const Icon(
                           Icons.admin_panel_settings,
                         ),
@@ -191,11 +201,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       items: const [
                         DropdownMenuItem(
                           value: "admin",
-                          child: Text("Admin"),
+                          child: Text("Admin (Pemilik)"),
                         ),
                         DropdownMenuItem(
                           value: "cashier",
-                          child: Text("Kasir"),
+                          child: Text("Kasir (Pegawai)"),
                         ),
                       ],
                       onChanged: (value) {
@@ -215,7 +225,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Daftar dan mulai belanja sekarang",
+                      "Daftar kasir baru wajib diverifikasi pemilik warung",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white70,
@@ -226,7 +236,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
 
-              // FORM
+              // FORM REGISTRASI
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(25),
@@ -238,21 +248,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 child: Column(
                   children: [
-                    // NAMA
                     customField(
                       controller: nameC,
                       hint: "Nama Lengkap",
                       icon: Icons.person,
                     ),
                     const SizedBox(height: 20),
-                    // USERNAME
                     customField(
                       controller: usernameC,
                       hint: "Username",
                       icon: Icons.alternate_email,
                     ),
                     const SizedBox(height: 20),
-                    // PHONE
                     customField(
                       controller: phoneC,
                       hint: "Nomor HP",
@@ -260,14 +267,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 20),
-                    // EMAIL
                     customField(
                       controller: emailC,
                       hint: "Email",
                       icon: Icons.email,
                     ),
                     const SizedBox(height: 20),
-                    // PASSWORD
                     customField(
                       controller: passC,
                       hint: "Password",
@@ -287,7 +292,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // CONFIRM PASSWORD
                     customField(
                       controller: confirmPassC,
                       hint: "Konfirmasi Password",
@@ -307,7 +311,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     const SizedBox(height: 35),
-                    // BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 58,
@@ -316,9 +319,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColor.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              18,
-                            ),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                         child: loading
@@ -326,7 +327,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           color: Colors.white,
                         )
                             : const Text(
-                          "Register",
+                          "Daftar Akun Baru",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -339,18 +340,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          "Sudah punya akun?",
-                        ),
+                        const Text("Sudah punya akun?"),
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(
-                              context,
-                            );
+                            Navigator.pop(context);
                           },
-                          child: const Text(
-                            "Login",
-                          ),
+                          child: const Text("Login"),
                         )
                       ],
                     )

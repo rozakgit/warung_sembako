@@ -1,3 +1,5 @@
+// services/product_service.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product_model.dart';
 
@@ -7,7 +9,8 @@ class ProductService {
   // 1. CREATE: Tambah produk baru
   Future<void> addProduct(ProductModel product) async {
     try {
-      await _firestore.collection('products').add(product.toMap());
+      // REVISI: Mengubah toMap() menjadi toFirestore()
+      await _firestore.collection('products').add(product.toFirestore());
     } catch (e) {
       throw Exception('Gagal menambah produk: $e');
     }
@@ -17,7 +20,9 @@ class ProductService {
   Stream<List<ProductModel>> getProducts() {
     return _firestore.collection('products').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return ProductModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        // REVISI: Mengubah dari fromMap menjadi fromFirestore
+        // Karena fungsi fromFirestore langsung menerima objek 'doc' (DocumentSnapshot), kodenya jadi jauh lebih ringkas!
+        return ProductModel.fromFirestore(doc);
       }).toList();
     });
   }
@@ -26,7 +31,8 @@ class ProductService {
   Future<void> updateProduct(ProductModel product) async {
     try {
       if (product.id != null) {
-        await _firestore.collection('products').doc(product.id).update(product.toMap());
+        // REVISI: Mengubah toMap() menjadi toFirestore()
+        await _firestore.collection('products').doc(product.id).update(product.toFirestore());
       }
     } catch (e) {
       throw Exception('Gagal mengupdate produk: $e');

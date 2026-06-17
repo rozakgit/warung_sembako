@@ -1,11 +1,10 @@
 // pages/admin/user_management_page.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../config/app_color.dart';
-import '../../models/user_model.dart';
 import '../../services/user_service.dart';
-import '../../widgets/user_card.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -17,10 +16,8 @@ class UserManagementPage extends StatefulWidget {
 class _UserManagementPageState extends State<UserManagementPage> {
   final UserService userService = UserService();
   final TextEditingController searchController = TextEditingController();
-
   String keyword = '';
 
-  // Fungsi Tampilkan Form Dialog Tambah User Baru
   void showAddUserDialog() {
     final addNameC = TextEditingController();
     final addUsernameC = TextEditingController();
@@ -109,6 +106,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                         dialogLoading = true;
                       });
 
+                      // Buat Akun via Auth & Firestore
                       await userService.createUserByAdmin(
                         name: addNameC.text,
                         username: addUsernameC.text,
@@ -118,8 +116,17 @@ class _UserManagementPageState extends State<UserManagementPage> {
                         role: addRole,
                       );
 
+                      // REVISI LOGIKA: Akun buatan Admin langsung otomatis Aktif (isApproved = true)
+                      final query = await FirebaseFirestore.instance
+                          .collection('users')
+                          .where('email', isEqualTo: addEmailC.text.trim())
+                          .get();
+                      if (query.docs.isNotEmpty) {
+                        await query.docs.first.reference.update({'isApproved': true});
+                      }
+
                       if (!mounted) return;
-                      Navigator.pop(context); // Tutup Dialog
+                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Pengguna baru Berhasil ditambahkan!")),
                       );
@@ -157,14 +164,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
         backgroundColor: AppColor.primary,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-
-      // TOMBOL FLOATING UNTUK TAMBAH USER LANGSUNG OLEH ADMIN
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColor.primary,
         onPressed: showAddUserDialog,
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
-
       body: Column(
         children: [
           Padding(
@@ -189,48 +193,79 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<UserModel>>(
-              stream: userService.getUsers(),
+            // REVISI: Menggunakan QuerySnapshot agar pembacaan dinamis isApproved lancar jaya
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('users').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
-
                 if (snapshot.hasError) {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text("Belum ada data pengguna."),
-                  );
-                }
+                var docs = snapshot.data?.docs ?? [];
 
-                var users = snapshot.data!;
-
+                // Filter keyword pencarian
                 if (keyword.isNotEmpty) {
-                  users = users.where((user) {
-                    final name = user.name.toLowerCase();
+                  docs = docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final name = (data['name'] ?? '').toString().toLowerCase();
                     return name.contains(keyword);
                   }).toList();
                 }
 
-                return ListView.builder(
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    var user = users[index];
+                if (docs.isEmpty) {
+                  return const Center(child: Text("Belum ada data pengguna."));
+                }
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                      child: UserCard(
-                        name: user.name,
-                        email: user.email,
-                        role: user.role,
-                        onTap: () {
-                          showUserDetail(user);
-                        },
+                return ListView.builder(
+                  itemCount: docs.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final data = doc.data() as Map<String, dynamic>;
+
+                    final String uid = doc.id;
+                    final String name = data['name'] ?? '-';
+                    final String email = data['email'] ?? '-';
+                    final String role = data['role'] ?? 'cashier';
+                    final bool isApproved = data['isApproved'] ?? false;
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        leading: CircleAvatar(
+                          backgroundColor: role == 'admin' ? Colors.orange.shade100 : Colors.teal.shade100,
+                          child: Icon(role == 'admin' ? Icons.admin_panel_settings : Icons.person, color: role == 'admin' ? Colors.orange : Colors.teal),
+                        ),
+                        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              Text(role.toUpperCase(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: role == 'admin' ? Colors.orange : Colors.teal)),
+                              const Text(" | ", style: TextStyle(color: Colors.grey)),
+
+                              // BADGE STATUS VERIFIKASI
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isApproved ? Colors.green.shade50 : Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  isApproved ? "AKTIF" : "PENDING",
+                                  style: TextStyle(color: isApproved ? Colors.green.shade700 : Colors.red.shade700, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                        onTap: () => showUserDetail(uid, name, email, role, isApproved),
                       ),
                     );
                   },
@@ -243,61 +278,63 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
-  void showUserDetail(UserModel user) {
+  void showUserDetail(String uid, String name, String email, String role, bool isApproved) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(25),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
+              Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10))),
               const SizedBox(height: 20),
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 35,
-                backgroundColor: AppColor.primary,
-                child: Icon(Icons.person, size: 40, color: Colors.white),
+                backgroundColor: isApproved ? AppColor.primary : Colors.grey,
+                child: const Icon(Icons.person, size: 40, color: Colors.white),
               ),
               const SizedBox(height: 15),
-              Text(
-                user.name,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 5),
-              Text(
-                user.email,
-                style: const TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              const SizedBox(height: 5),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: user.role == 'admin' ? Colors.blue.shade100 : Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  user.role.toUpperCase(),
-                  style: TextStyle(
-                    color: user.role == 'admin' ? Colors.blue.shade800 : Colors.green.shade800,
-                    fontWeight: FontWeight.bold,
+              Text(email, style: const TextStyle(color: Colors.grey, fontSize: 16)),
+              const SizedBox(height: 15),
+
+              // ====================================================================
+              // REVISI TOMBOL AKSI UTAMA: PERSETUJUAN VERIFIKASI (APPROVE / REVOKE)
+              // ====================================================================
+              if (role == 'cashier')
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    icon: Icon(isApproved ? Icons.block : Icons.check_circle, color: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isApproved ? Colors.orange.shade700 : Colors.green.shade600,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () async {
+                      // Mengubah status persetujuan di database Firestore secara langsung
+                      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+                        'isApproved': !isApproved,
+                      });
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isApproved ? "Akses Kasir berhasil Dinonaktifkan!" : "Akun Kasir berhasil Diverifikasi & Aktif!")),
+                      );
+                    },
+                    label: Text(
+                      isApproved ? "Nonaktifkan Akses Kasir" : "Setujui / Verifikasi Kasir",
+                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
+
+              if (role == 'cashier') const SizedBox(height: 12),
+
+              // TOMBOL ATUR ROLE
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -305,25 +342,19 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   icon: const Icon(Icons.admin_panel_settings, color: Colors.white),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () async {
-                    await userService.updateRole(
-                      user.uid,
-                      user.role == 'admin' ? 'cashier' : 'admin',
-                    );
+                    await userService.updateRole(uid, role == 'admin' ? 'cashier' : 'admin');
                     if (!mounted) return;
                     Navigator.pop(context);
                   },
-                  label: Text(
-                    user.role == 'admin' ? "Ubah jadi Kasir" : "Jadikan Admin",
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  label: Text(role == 'admin' ? "Ubah jadi Kasir" : "Jadikan Admin", style: const TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
               const SizedBox(height: 12),
+
+              // TOMBOL HAPUS AKUN
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -331,19 +362,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   icon: const Icon(Icons.delete, color: Colors.white),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red.shade400,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () async {
-                    await userService.deleteUser(user.uid);
+                    await userService.deleteUser(uid);
                     if (!mounted) return;
                     Navigator.pop(context);
                   },
-                  label: const Text(
-                    "Hapus Akun",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  label: const Text("Hapus Akun Permanen", style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
               const SizedBox(height: 10),

@@ -1,5 +1,6 @@
 // pages/admin/product_management_page.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../config/app_color.dart';
@@ -18,7 +19,6 @@ class ProductManagementPage extends StatefulWidget {
 class _ProductManagementPageState extends State<ProductManagementPage> {
   final ProductService _productService = ProductService();
 
-  // Dialog konfirmasi sebelum menghapus produk
   void confirmDelete(ProductModel product) {
     showDialog(
       context: context,
@@ -33,7 +33,7 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              Navigator.pop(context); // Tutup dialog
+              Navigator.pop(context);
               try {
                 if (product.id != null) {
                   await _productService.deleteProduct(product.id!);
@@ -101,11 +101,10 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
             itemBuilder: (context, index) {
               final product = products[index];
               bool isNetworkImage = product.image.startsWith('http');
+              bool isAssetImage = product.image.startsWith('assets/');
 
               return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 margin: const EdgeInsets.only(bottom: 16),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(12),
@@ -116,21 +115,45 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
                       height: 60,
                       child: isNetworkImage
                           ? Image.network(product.image, fit: BoxFit.cover)
-                          : Image.asset(product.image, fit: BoxFit.cover),
+                          : isAssetImage
+                          ? Image.asset(product.image, fit: BoxFit.cover)
+                          : Image.memory(base64Decode(product.image), fit: BoxFit.cover),
                     ),
                   ),
                   title: Text(
                     product.name,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  subtitle: Text(
-                    "Rp ${product.price} | Stok: ${product.stock}",
-                    style: const TextStyle(color: Colors.orange),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        "Rp ${product.price} | Stok: ${product.stock}",
+                        style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: product.isActive ? Colors.green.shade50 : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          product.isActive ? "Status: AKTIF" : "Status: NON-AKTIF",
+                          style: TextStyle(
+                            color: product.isActive ? Colors.green.shade700 : Colors.red.shade700,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  isThreeLine: true,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Tombol Edit
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () {
@@ -142,7 +165,6 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
                           );
                         },
                       ),
-                      // Tombol Delete
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () => confirmDelete(product),

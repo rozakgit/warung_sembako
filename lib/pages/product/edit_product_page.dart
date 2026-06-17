@@ -18,6 +18,7 @@ class EditProductPage extends StatefulWidget {
 class _EditProductPageState extends State<EditProductPage> {
   late TextEditingController nameC;
   late TextEditingController priceC;
+  late TextEditingController modalC; // REVISI: Tambah controller untuk Harga Modal
   late TextEditingController stockC;
   late TextEditingController imageC;
 
@@ -29,14 +30,16 @@ class _EditProductPageState extends State<EditProductPage> {
     // Mengisi form dengan data produk yang sudah ada
     nameC = TextEditingController(text: widget.product.name);
     priceC = TextEditingController(text: widget.product.price.toString());
+    modalC = TextEditingController(text: widget.product.modal.toString()); // REVISI: Ambil nilai modal awal produk
     stockC = TextEditingController(text: widget.product.stock.toString());
     imageC = TextEditingController(text: widget.product.image);
   }
 
   void updateProduct() async {
-    if (nameC.text.isEmpty || priceC.text.isEmpty || stockC.text.isEmpty) {
+    // REVISI: Validasi agar field modalC tidak boleh kosong saat diupdate
+    if (nameC.text.isEmpty || priceC.text.isEmpty || modalC.text.isEmpty || stockC.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Nama, Harga, dan Stok tidak boleh kosong")),
+        const SnackBar(content: Text("Nama, Harga Modal, Harga Jual, dan Stok tidak boleh kosong")),
       );
       return;
     }
@@ -45,14 +48,16 @@ class _EditProductPageState extends State<EditProductPage> {
       setState(() => loading = true);
 
       int price = int.parse(priceC.text.replaceAll(RegExp(r'[^0-9]'), ''));
+      int modal = int.parse(modalC.text.replaceAll(RegExp(r'[^0-9]'), '')); // REVISI: Parsing inputan baru Harga Modal
       int stock = int.parse(stockC.text.replaceAll(RegExp(r'[^0-9]'), ''));
       String image = imageC.text.isNotEmpty ? imageC.text : 'assets/images/b1.jpg';
 
-      // Membentuk objek ProductModel dengan ID yang sama
+      // REVISI: Menyertakan parameter 'modal' ke dalam konstruktor ProductModel agar sinkron
       ProductModel updatedProduct = ProductModel(
         id: widget.product.id,
         name: nameC.text,
         price: price,
+        modal: modal, // Mengisi field modal yang diwajibkan
         stock: stock,
         image: image,
         images: widget.product.images, // Pertahankan images lama
@@ -134,14 +139,21 @@ class _EditProductPageState extends State<EditProductPage> {
               children: [
                 const Text("Update Data Produk", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 30),
+
                 customField(controller: nameC, hint: "Nama Produk", icon: Icons.shopping_bag),
                 const SizedBox(height: 20),
-                customField(controller: priceC, hint: "Harga", icon: Icons.attach_money, keyboardType: TextInputType.number),
+
+                // REVISI: Menambahkan form input untuk memodifikasi Harga Modal dari Supplier
+                customField(controller: modalC, hint: "Harga Modal / Beli Agen (Angka)", icon: Icons.account_balance_wallet_outlined, keyboardType: TextInputType.number),
+                const SizedBox(height: 20),
+
+                customField(controller: priceC, hint: "Harga Jual Toko (Angka)", icon: Icons.attach_money, keyboardType: TextInputType.number),
                 const SizedBox(height: 20),
                 customField(controller: stockC, hint: "Stok", icon: Icons.inventory, keyboardType: TextInputType.number),
                 const SizedBox(height: 20),
                 customField(controller: imageC, hint: "Link URL Gambar", icon: Icons.image),
                 const SizedBox(height: 35),
+
                 SizedBox(
                   width: double.infinity,
                   height: 58,
