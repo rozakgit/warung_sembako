@@ -158,7 +158,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       backgroundColor: AppColor.background,
       appBar: AppBar(
         title: const Text(
-          "Kelola Pengguna",
+          "Kelola User",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColor.primary,
